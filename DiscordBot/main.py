@@ -9,6 +9,9 @@ if BOT_TOKEN == "put_token_here":
 # Channel id for the showPinned command
 CHANNEL_ID = 1164973198174077038
 
+# Initialise bot with command prefix
+intents = discord.Intents.default()
+intents.messages = True
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 
 # Displays when the bot logged in
@@ -51,6 +54,26 @@ async def show_thread_pin(ctx):
             print(f'No pinned messages found in this thread.')
     else:
         await ctx.send("This command can only be used in threads.")
-        print(f'Error - This command was not called in a thread.')
+        print(f'Error - Command was not called in a thread.')
+
+# Command for pinning the message before the command call
+@bot.command(name='pinThat')
+async def pin_message(ctx):
+    try:
+        messages = [message async for message in ctx.channel.history(limit=2)] # Fetches the command message and the message to be pinned
+        if len(messages) < 2:
+            await ctx.send("No previous message to pin.")
+            return
+
+        message_to_pin = messages[1]
+
+        await message_to_pin.pin() # Pins the message
+        await ctx.send(f"Message successfully pinned.")
+        print(f'Message was pinned: "{message_to_pin}"')
+
+    except discord.Forbidden:
+        await ctx.send("I don't have permission to pin messages in this channel.")
+    except discord.HTTPException as e:
+        await ctx.send(f"An error occurred: {e}")
 
 bot.run(BOT_TOKEN)
